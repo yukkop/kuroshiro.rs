@@ -1,4 +1,5 @@
 use kuromoji::Tokenizer;
+use wana_kana::IsJapaneseStr;
 
 pub struct Kuroshiro;
 
@@ -20,6 +21,17 @@ impl Kuroshiro {
             .as_slice()
             .iter()
             .map(|token| token.clone().reading)
+            .collect::<Vec<String>>();
+        let ruby_output = ruby_tokens.join("");
+        ruby_output
+    }
+
+    pub fn convert_to_hiragana(text: &str) -> String {
+        let tokens = parse(text);
+        let ruby_tokens = tokens
+            .as_slice()
+            .iter()
+            .map(|token| token.to_hiragana())
             .collect::<Vec<String>>();
         let ruby_output = ruby_tokens.join("");
         ruby_output
@@ -54,8 +66,7 @@ impl Token {
     fn to_hiragana(&self) -> String {
         if let Alphabet::Katakana = define_alphabet(&self.reading.clone().as_str()) {
             to_hiraganas(self.reading.as_str())
-        } else if self.reading.as_str() == "UNK" {
-            //TODO: very ugly
+        } else if self.reading.is_romaji() || self.reading.is_mixed() {
             self.reading.clone()
         } else {
             self.text.clone()
